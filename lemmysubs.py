@@ -1,16 +1,27 @@
 #!/usr/bin/python3
+import sys
+
+sys.path.insert(0, '/home/cdyoung/pythorhead/pythorhead')
+
 from pythorhead import Lemmy
 import datetime
 from os.path import exists
 import json
-import sys
 import urllib.parse
 import time
 
 def sub_to_communities(auth, subs):
 	for user in auth:
 		lemmy = Lemmy(auth[user]["instance"])
-		lemmy.log_in(auth[user]["username"], auth[user]["password"])
+		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
+
+		if ok is False:
+			totp = input("Please enter TOTP code:")
+			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp)
+			if ok is False:
+				print("error logging in")
+				return
+
 
 		for sub in subs:
 			#print(sub)
@@ -66,7 +77,15 @@ if (mode == "export") or (mode == "sync"):
 		print("Getting subs for user %s\n" % user)
 
 		lemmy = Lemmy(auth[user]["instance"])
-		lemmy.log_in(auth[user]["username"], auth[user]["password"])
+		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
+
+		if ok is False:
+			totp = input("Please enter TOTP code:")
+			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp)
+			if ok is False:
+				print("error logging in")
+				sys.exit()
+
 
 		subpg = [ 0 ]
 		pg = 1
