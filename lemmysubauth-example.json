@@ -1,0 +1,11 @@
+{"user1": {
+	"username": "user",
+	"password": "password",
+	"instance": "https://instance.example"
+	},
+"user2": {
+        "username": "user2",
+        "password": "password2",
+        "instance": "https://instance2.example"
+        }
+}
