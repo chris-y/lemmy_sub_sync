@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 import sys
-
-sys.path.insert(0, '/home/cdyoung/pythorhead/pythorhead')
-
 from pythorhead import Lemmy
 import datetime
 from os.path import exists
