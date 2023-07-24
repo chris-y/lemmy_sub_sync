@@ -6,6 +6,7 @@ from os.path import exists
 import json
 import urllib.parse
 import time
+import pyotp
 
 def sub_to_communities(auth, subs):
 	for user in auth:
@@ -13,8 +14,8 @@ def sub_to_communities(auth, subs):
 		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
 
 		if ok is False:
-			totp = input("Please enter TOTP code:")
-			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp)
+			totp = pyotp.TOTP(auth[user]["totp"], digest="SHA256")
+			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp.now())
 			if ok is False:
 				print("error logging in")
 				return
@@ -77,8 +78,8 @@ if (mode == "export") or (mode == "sync"):
 		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
 
 		if ok is False:
-			totp = input("Please enter TOTP code:")
-			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp)
+			totp = pyotp.TOTP(auth[user]["totp"], digest="SHA256")
+			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp.now())
 			if ok is False:
 				print("error logging in")
 				sys.exit()

@@ -1,6 +1,7 @@
 {"user1": {
 	"username": "user",
 	"password": "password",
+	"totp":     "BASE32STRING",
 	"instance": "https://instance.example"
 	},
 "user2": {
