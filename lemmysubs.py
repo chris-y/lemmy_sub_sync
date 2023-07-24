@@ -7,6 +7,7 @@ import json
 import urllib.parse
 import time
 import pyotp
+import common
 
 def lemmy_login(userauth):
 	if userauth["type"] == "lemmy":
@@ -86,13 +87,32 @@ def get_subs(auth):
 	
 	return subs
 	
-	
+
+def subs_import(filename):
+		try:
+			with open(filename) as f:
+				subs = json.load(f)
+		except:
+			print("error opening %s\n" % filename)
+			return
+
+		auth = common.get_auth()
+
+		sub_to_communities(auth, subs)
+
+def subs_export(filename):
+	auth = common.get_auth()
+	subs = get_subs(auth)
+
+	if filename is not None:
+		with open(filename, 'w') as outfile:
+			json.dump(subs, outfile)
+	else:
+		sub_to_communities(auth, subs)
+
 def main():
 	
 	mode = sys.argv[1]
-
-	with open("./.lemmysubauth.json") as f:
-		auth = json.load(f)
 
 	try:
 		filename = sys.argv[2]
@@ -101,25 +121,16 @@ def main():
 
 
 	if (mode == "export") or (mode == "sync"):
+		subs_export(filename)
 
-		subs = get_subs(auth)
-
-		if mode == "export":
-			with open(filename, 'w') as outfile:
-				json.dump(subs, outfile)
-
-		elif mode == "sync":
-			sub_to_communities(auth, subs)
+	elif (mode == "sync"):
+		subs_export(None)
 
 	elif (mode == "import"):
-		try:
-			with open(file) as f:
-				subs = json.load(f)
-		except:
-			print("error opening %s\n" % file)
-			return
-
-		sub_to_communities(auth, subs)
+		subs_import(filename)
+		
+	else:
+		print("unknown mode")
 
 #start
 main()

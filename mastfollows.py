@@ -4,9 +4,8 @@ from mastodon import Mastodon
 import datetime
 from os.path import exists
 import json
-import urllib.parse
 import time
-import pyotp
+import common
 
 def mast_login(userauth):
 
@@ -62,42 +61,52 @@ def get_follows(auth):
 		follows.extend(accfollows)
 	
 	return follows
+
+def follows_import(filename):
+	try:
+		with open(filename) as f:
+			follows = json.load(f)
+	except:
+		print("error opening %s\n" % filename)
+		return
+
+	auth = common.auth()
+	follow_users(auth, follows)
 	
+def follows_export(filename):
+	auth = common.get_auth()
+	follows = get_follows(auth)
+
+	if filename is not None:
+		with open(filename, 'w') as outfile:
+			json.dump(follows, outfile, default=str)
+
+	else:
+		follow_users(auth, follows)
 	
+
 def main():
 	
 	mode = sys.argv[1]
 
-	with open("./.lemmysubauth.json") as f:
-		auth = json.load(f)
-
 	try:
 		filename = sys.argv[2]
 	except:
-		filename = "./mastusers_export.json"
+		filename = "./mastfollows_export.json"
 
 
-	if (mode == "export") or (mode == "sync"):
+	if (mode == "export"):
+		follows_export(filename)
 
-		follows = get_follows(auth)
-
-		if mode == "export":
-		
-			with open(filename, 'w') as outfile:
-				json.dump(follows, outfile, default=str)
-
-		elif mode == "sync":
-			follow_users(auth, follows)
+	elif (mode == "sync"):
+		follows_export(None)
 
 	elif (mode == "import"):
-		try:
-			with open(file) as f:
-				follows = json.load(f)
-		except:
-			print("error opening %s\n" % file)
-			return
+		follows_import(filename)
+		
+	else:
+		print("unknown mode")
 
-		follow_users(auth, follows)
 
 #start
 main()
