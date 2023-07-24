@@ -63,7 +63,7 @@ with open("./.lemmysubauth.json") as f:
 try:
 	file = sys.argv[2]
 except:
-	file = "~/lemmysubs_export.json"
+	file = "./lemmysubs_export.json"
 
 
 if (mode == "export") or (mode == "sync"):
