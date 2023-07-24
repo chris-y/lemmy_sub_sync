@@ -63,7 +63,28 @@ def sub_to_communities(auth, subs):
 
 			time.sleep(0.1)
 			
+def get_subs(auth):
+	subs = []
 
+	for user in auth:
+		print("Getting subs for user %s\n" % user)
+
+		lemmy = lemmy_login(auth[user])
+		if lemmy is None:
+			return None
+
+		subpg = [ 0 ]
+		pg = 1
+
+		while subpg:
+			subpg = lemmy.community.list(type_ = "Subscribed", page = pg)
+			subs.extend(subpg)
+			print(pg)
+			pg += 1
+	
+	return subs
+	
+	
 def main():
 	
 	mode = sys.argv[1]
@@ -72,33 +93,17 @@ def main():
 		auth = json.load(f)
 
 	try:
-		file = sys.argv[2]
+		filename = sys.argv[2]
 	except:
-		file = "./lemmysubs_export.json"
+		filename = "./lemmysubs_export.json"
 
 
 	if (mode == "export") or (mode == "sync"):
 
-		subs = []
-
-		for user in auth:
-			print("Getting subs for user %s\n" % user)
-
-			lemmy = lemmy_login(auth[user])
-			if lemmy is None:
-				return
-
-			subpg = [ 0 ]
-			pg = 1
-
-			while subpg:
-				subpg = lemmy.community.list(type_ = "Subscribed", page = pg)
-				subs.extend(subpg)
-				print(pg)
-				pg += 1
+		subs = export(auth)
 
 		if mode == "export":
-			with open(file, 'w') as outfile:
+			with open(filename, 'w') as outfile:
 				json.dump(subs, outfile)
 
 		elif mode == "sync":
