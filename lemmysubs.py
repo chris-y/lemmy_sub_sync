@@ -8,18 +8,26 @@ import urllib.parse
 import time
 import pyotp
 
+def lemmy_login(userauth):
+	lemmy = Lemmy(userauth["instance"])
+	ok = lemmy.log_in(userauth["username"], userauth["password"])
+
+	if ok is False:
+		print("Retrying with TOTP code")
+		totp = pyotp.TOTP(userauth["totp"], digest="SHA256")
+		ok = lemmy.log_in(userauth["username"], userauth["password"], totp.now())
+		if ok is False:
+			print("error logging in")
+			return None
+			
+	return lemmy
+
+
 def sub_to_communities(auth, subs):
 	for user in auth:
-		lemmy = Lemmy(auth[user]["instance"])
-		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
-
-		if ok is False:
-			totp = pyotp.TOTP(auth[user]["totp"], digest="SHA256")
-			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp.now())
-			if ok is False:
-				print("error logging in")
-				return
-
+		lemmy = lemmy_login(auth[user])
+		if lemmy is None:
+			return
 
 		for sub in subs:
 			#print(sub)
@@ -54,63 +62,57 @@ def sub_to_communities(auth, subs):
 
 
 			time.sleep(0.1)
-# main program
+			
 
-mode = sys.argv[1]
+def main():
+	
+	mode = sys.argv[1]
 
-with open("./.lemmysubauth.json") as f:
-	auth = json.load(f)
+	with open("./.lemmysubauth.json") as f:
+		auth = json.load(f)
 
-try:
-	file = sys.argv[2]
-except:
-	file = "./lemmysubs_export.json"
-
-
-if (mode == "export") or (mode == "sync"):
-
-	subs = []
-
-	for user in auth:
-		print("Getting subs for user %s\n" % user)
-
-		lemmy = Lemmy(auth[user]["instance"])
-		ok = lemmy.log_in(auth[user]["username"], auth[user]["password"])
-
-		if ok is False:
-			totp = pyotp.TOTP(auth[user]["totp"], digest="SHA256")
-			ok = lemmy.log_in(auth[user]["username"], auth[user]["password"], totp.now())
-			if ok is False:
-				print("error logging in")
-				sys.exit()
+	try:
+		file = sys.argv[2]
+	except:
+		file = "./lemmysubs_export.json"
 
 
-		subpg = [ 0 ]
-		pg = 1
+	if (mode == "export") or (mode == "sync"):
 
-		while subpg:
-			subpg = lemmy.community.list(type_ = "Subscribed", page = pg)
-			subs.extend(subpg)
-			print(pg)
-			pg += 1
+		subs = []
 
-	if mode == "dump":
-		print(subs)
-		sys.exit()
+		for user in auth:
+			print("Getting subs for user %s\n" % user)
 
-	if mode == "export":
-		with open(file, 'w') as outfile:
-			json.dump(subs, outfile)
+			lemmy = lemmy_login(auth[user])
+			if lemmy is None:
+				return
 
-	elif mode == "sync":
+			subpg = [ 0 ]
+			pg = 1
+
+			while subpg:
+				subpg = lemmy.community.list(type_ = "Subscribed", page = pg)
+				subs.extend(subpg)
+				print(pg)
+				pg += 1
+
+		if mode == "export":
+			with open(file, 'w') as outfile:
+				json.dump(subs, outfile)
+
+		elif mode == "sync":
+			sub_to_communities(auth, subs)
+
+	elif (mode == "import"):
+		try:
+			with open(file) as f:
+				subs = json.load(f)
+		except:
+			print("error opening %s\n" % file)
+			return
+
 		sub_to_communities(auth, subs)
 
-elif (mode == "import"):
-	try:
-		with open(file) as f:
-			subs = json.load(f)
-	except:
-		print("error opening %s\n" % file)
-		sys.exit()
-
-	sub_to_communities(auth, subs)
+#start
+main()
