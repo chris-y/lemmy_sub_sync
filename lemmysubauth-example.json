@@ -1,12 +1,18 @@
 {"user1": {
+	"type": "lemmy",
 	"username": "user",
 	"password": "password",
 	"totp":     "BASE32STRING",
 	"instance": "https://instance.example"
 	},
 "user2": {
+	"type": "lemmy",
         "username": "user2",
         "password": "password2",
         "instance": "https://instance2.example"
-        }
+        },
+"user3": {
+	"type": "mastodon",
+	"token": "mastodon-api-token",
+	"instance": "https://instance3.example"
 }

@@ -164,4 +164,4 @@ cython_debug/
 
 #exclude default export file
 lemmysubs_export.json
-
+mastusers_export.json

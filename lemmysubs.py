@@ -9,25 +9,27 @@ import time
 import pyotp
 
 def lemmy_login(userauth):
-	lemmy = Lemmy(userauth["instance"])
-	ok = lemmy.log_in(userauth["username"], userauth["password"])
+	if userauth["type"] == "lemmy":
+		lemmy = Lemmy(userauth["instance"])
+		ok = lemmy.log_in(userauth["username"], userauth["password"])
 
-	if ok is False:
-		print("Retrying with TOTP code")
-		totp = pyotp.TOTP(userauth["totp"], digest="SHA256")
-		ok = lemmy.log_in(userauth["username"], userauth["password"], totp.now())
 		if ok is False:
-			print("error logging in")
-			return None
-			
-	return lemmy
+			print("Retrying with TOTP code")
+			totp = pyotp.TOTP(userauth["totp"], digest="SHA256")
+			ok = lemmy.log_in(userauth["username"], userauth["password"], totp.now())
+			if ok is False:
+				print("error logging in")
+				return None
+
+		return lemmy
+	return None
 
 
 def sub_to_communities(auth, subs):
 	for user in auth:
 		lemmy = lemmy_login(auth[user])
 		if lemmy is None:
-			return
+			continue
 
 		for sub in subs:
 			#print(sub)
@@ -67,11 +69,11 @@ def get_subs(auth):
 	subs = []
 
 	for user in auth:
-		print("Getting subs for user %s\n" % user)
-
 		lemmy = lemmy_login(auth[user])
 		if lemmy is None:
-			return None
+			continue
+
+		print("Getting subs for user %s\n" % user)
 
 		subpg = [ 0 ]
 		pg = 1
@@ -100,7 +102,7 @@ def main():
 
 	if (mode == "export") or (mode == "sync"):
 
-		subs = export(auth)
+		subs = get_subs(auth)
 
 		if mode == "export":
 			with open(filename, 'w') as outfile:
