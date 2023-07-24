@@ -159,4 +159,9 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# exclude hidden files
 .*
+
+#exclude default export file
+lemmysubs_export.json
+
