@@ -39,7 +39,7 @@ def sub_to_communities(auth, subs):
 			for attempt in range(10):
 				print("Finding %s..." % comm_name)
 				comm = lemmy.discover_community(comm_name)
-
+				print(comm)
 				if comm:
 					break;
 				else:
@@ -120,7 +120,7 @@ def main():
 		filename = "./lemmysubs_export.json"
 
 
-	if (mode == "export") or (mode == "sync"):
+	if (mode == "export"):
 		subs_export(filename)
 
 	elif (mode == "sync"):
