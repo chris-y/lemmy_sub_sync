@@ -15,9 +15,14 @@ def lemmy_login(userauth):
 		ok = lemmy.log_in(userauth["username"], userauth["password"])
 
 		if ok is False:
-			print("Retrying with TOTP code")
-			totp = pyotp.TOTP(userauth["totp"], digest="SHA256")
-			ok = lemmy.log_in(userauth["username"], userauth["password"], totp.now())
+			if "totp" in userauth:
+				print("Retrying with TOTP code")
+				totp = pyotp.TOTP(userauth["totp"], digest="SHA256")
+				code = totp.now()
+			else:
+				code = input("Enter TOTP code:")
+
+			ok = lemmy.log_in(userauth["username"], userauth["password"], code)
 			if ok is False:
 				print("error logging in")
 				return None
@@ -88,7 +93,7 @@ def get_subs(auth):
 	return subs
 	
 
-def subs_import(filename):
+def subs_import(filename, config):
 		try:
 			with open(filename) as f:
 				subs = json.load(f)
@@ -96,12 +101,12 @@ def subs_import(filename):
 			print("error opening %s\n" % filename)
 			return
 
-		auth = common.get_auth()
+		auth = common.get_auth(config["config_file"])
 
 		sub_to_communities(auth, subs)
 
-def subs_export(filename):
-	auth = common.get_auth()
+def subs_export(filename, config):
+	auth = common.get_auth(config["config_file"])
 	subs = get_subs(auth)
 
 	if filename is not None:
@@ -112,23 +117,19 @@ def subs_export(filename):
 
 def main():
 	
-	mode = sys.argv[1]
+	config = common.get_args()
 
-	try:
-		filename = sys.argv[2]
-	except:
-		filename = "./lemmysubs_export.json"
-
+	mode = config["mode"]
 
 	if (mode == "export"):
-		subs_export(filename)
+		subs_export(config["output_file"], config)
 
 	elif (mode == "sync"):
-		subs_export(None)
+		subs_export(None, config)
 
 	elif (mode == "import"):
-		subs_import(filename)
-		
+		subs_import(config["output_file"], config)
+
 	else:
 		print("unknown mode")
 

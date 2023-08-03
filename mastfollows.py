@@ -62,7 +62,7 @@ def get_follows(auth):
 	
 	return follows
 
-def follows_import(filename):
+def follows_import(filename, config):
 	try:
 		with open(filename) as f:
 			follows = json.load(f)
@@ -70,11 +70,11 @@ def follows_import(filename):
 		print("error opening %s\n" % filename)
 		return
 
-	auth = common.auth()
+	auth = common.auth(config["config_file"])
 	follow_users(auth, follows)
 	
-def follows_export(filename):
-	auth = common.get_auth()
+def follows_export(filename, config):
+	auth = common.get_auth(config["config_file"])
 	follows = get_follows(auth)
 
 	if filename is not None:
@@ -83,27 +83,22 @@ def follows_export(filename):
 
 	else:
 		follow_users(auth, follows)
-	
+
 
 def main():
 	
-	mode = sys.argv[1]
-
-	try:
-		filename = sys.argv[2]
-	except:
-		filename = "./mastfollows_export.json"
-
+	config = common.get_args()
+	mode = config["mode"]
 
 	if (mode == "export"):
-		follows_export(filename)
+		follows_export(filename, config)
 
 	elif (mode == "sync"):
-		follows_export(None)
+		follows_export(None, config)
 
 	elif (mode == "import"):
-		follows_import(filename)
-		
+		follows_import(filename, config)
+
 	else:
 		print("unknown mode")
 
