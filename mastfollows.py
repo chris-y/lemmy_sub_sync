@@ -91,13 +91,13 @@ def main():
 	mode = config["mode"]
 
 	if (mode == "export"):
-		follows_export(filename, config)
+		follows_export(config["output_file"], config)
 
 	elif (mode == "sync"):
 		follows_export(None, config)
 
 	elif (mode == "import"):
-		follows_import(filename, config)
+		follows_import(config["output_file"], config)
 
 	else:
 		print("unknown mode")
